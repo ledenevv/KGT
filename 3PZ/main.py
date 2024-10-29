@@ -1,17 +1,20 @@
 import random
 import string
 import time
-import itertools
+import itertools  # Импортируем itertools для перебора комбинаций
 
 # Функция для генерации отчета о времени выполнения и количестве проверенных паролей
-def generate_report(method, attempts, duration):
+def generate_report(method, attempts, duration, found_password=None):
     with open("password_recovery_report.txt", "a") as report_file:
         report_file.write(f"Method: {method}\n")
         report_file.write(f"Total attempts: {attempts}\n")
-        report_file.write(f"Duration: {duration:.2f} seconds\n\n")
+        report_file.write(f"Duration: {duration:.2f} seconds\n")
+        if found_password:
+            report_file.write(f"Password found: {found_password}\n")
+        report_file.write("\n")
 
 # 1. Восстановление пароля с перебором
-def password_recovery_brute_force(char_set, max_length):
+def password_recovery_brute_force(char_set, max_length, target_password):
     print("Starting brute-force recovery...")
     start_time = time.time()
     attempts = 0
@@ -19,13 +22,19 @@ def password_recovery_brute_force(char_set, max_length):
     for length in range(1, max_length + 1):
         for password in ("".join(candidate) for candidate in itertools.product(char_set, repeat=length)):
             attempts += 1
-            if attempts % 10000 == 0:
+            if password == target_password:  # Проверка угаданного пароля
+                duration = time.time() - start_time
+                generate_report("Brute-force", attempts, duration, found_password=password)
+                print(f"Password '{password}' found after {attempts} attempts in {duration:.2f} seconds.")
+                return password  # Возврат найденного пароля
+            
+            if attempts % 10000 == 0:  # Промежуточный отчет о попытках
                 print(f"Attempts: {attempts}")
-            # Здесь должен быть код проверки пароля
-
+    
     duration = time.time() - start_time
     generate_report("Brute-force", attempts, duration)
-    print("Brute-force recovery completed.")
+    print("Password recovery completed. Password not found.")
+    return None
 
 # 2. Расчет минимальной длины пароля для заданной стойкости
 def calculate_min_password_length(A, P, V, T):
@@ -61,7 +70,8 @@ def user_interface():
         if choice == '1':
             char_set = string.ascii_letters + string.digits
             max_length = int(input("Введите максимальную длину пароля для перебора: "))
-            password_recovery_brute_force(char_set, max_length)
+            target_password = input("Введите целевой пароль: ")
+            password_recovery_brute_force(char_set, max_length, target_password)
         
         elif choice == '2':
             A = int(input("Введите мощность алфавита (количество символов): "))
@@ -84,5 +94,6 @@ def user_interface():
         else:
             print("Неверный ввод, попробуйте еще раз.")
 
-# Запуск программы
-user_interface()
+# Запуск пользовательского интерфейса
+if __name__ == "__main__":
+    user_interface()

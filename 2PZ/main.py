@@ -34,13 +34,13 @@ def find_d(e, phi_n):
 
 # Функция для шифрования сообщения
 def encrypt_message(message, e, n):
-    encrypted_message = [(ord(char) ** e) % n for char in message]
+    encrypted_message = [(ord(char) - 65 + 1) ** e % n for char in message]
     return encrypted_message
 
 # Функция для дешифрования сообщения
 def decrypt_message(encrypted_message, d, n):
-    decrypted_message = [chr((char ** d) % n) for char in encrypted_message]
-    return ''.join(decrypted_message)
+    decrypted_message = [chr((char ** d % n) + 65 - 1) for char in encrypted_message]
+    return ''.join(decrypted_message).lower()
 
 # Основная функция взаимодействия с пользователем
 def main():
@@ -76,7 +76,7 @@ def main():
 
     # Запрос на ввод сообщения
     if action == "шифровать":
-        message = input("Введите сообщение для шифрования: ")
+        message = input("Введите сообщение для шифрования: ").upper()
         encrypted_message = encrypt_message(message, e, n)
         print("Зашифрованное сообщение:", encrypted_message)
     elif action == "дешифровать":
